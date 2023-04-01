@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:  "This is my first clodformation template to create resources"
+Parameters: 
+  AMIID: 
+    Type: String
+    Description: "" 
+    Default: "ami-005f9685cb30f234b"
+  Instancetype:  
+    Type: String
+    Description: "" 
+    Default: "t2.micro"    
+   
+
+  
+Resources:
+    myEC2Instance:
+      Type: "AWS::EC2::Instance"
+      Properties:
+        KeyName: "ec2serverlambdafunction"
+        ImageId: 
+          Ref: AMIID
+        InstanceType:
+          Ref: Instancetype
+    Rohitsg:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupName: "Allow-ssh-sg2" 
+        GroupDescription: "Allow-ssh-sg2"
+        VpcId:  "vpc-0238c4ebe32b9f3d7"
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: "0.0.0.0/0"  
+        SecurityGroupEgress:
+          - IpProtocol: "tcp"
+            FromPort: 0
+            ToPort: 65000
+            CidrIp: "0.0.0.0/0"

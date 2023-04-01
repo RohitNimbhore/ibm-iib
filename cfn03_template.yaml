@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This Template will deploy a vpc with one public and one private subnet in same availaibility zone , one internet gateway attach to public subnet via Routetable and one NATgateway attach to
+ private subnet"
+
+Parameters:
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.10.0.0/24
+
+  AMIID:
+    Description: ""
+    Type: String
+    Default:  "ami-005f9685cb30f234b"
+
+  Instancestate:
+    Description:  "" 
+    Type: String
+    Default: "t2.micro"
+
+Resources:
+  PublicPrivateVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/24
+      EnableDnsSupport: true
+      
+  igwName:
+    Type: AWS::EC2::InternetGateway
+            
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref PublicPrivateVPC
+      InternetGatewayId: !Ref igwName
+        
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      VpcId: !Ref PublicPrivateVPC
+      CidrBlock: 10.10.0.0/25
+
+  PublicRouteTable:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CustomRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref igwName
+
+  CustomRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref PublicPrivateVPC
+      
+  routeTableAssocName:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref CustomRT
+
+  CustomSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "allowsshtest"
+      GroupDescription: "allowsshtest"
+      VpcId:  !Ref PublicPrivateVPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: "0.0.0.0/0"
+      SecurityGroupEgress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65000
+        CidrIp: "0.0.0.0/0"
+     
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "ec2serverlambdafunction"
+      ImageId:  !Ref AMIID
+      InstanceType: !Ref Instancestate
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref CustomSG
+        
+      
+      
+      
+     
+        
+      

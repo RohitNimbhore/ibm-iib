@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "This template will deploy 1 custom vpc with internet gateway attached to vpc , one public and one private subnet, Nat gateway ,one security group and 
+ec2 instance"
+
+Parameters:
+   AMIID:
+    Type: String
+    Default: "ami-005f9685cb30f234b"
+   Instancestate:
+    Type: String
+    Default: "t2.micro"
+
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.10.0.0/24"
+      EnableDnsSupport: true
+  
+  igwName:
+    Type: AWS::EC2::InternetGateway
+          
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref igwName
+  
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      VpcId: !Ref myVPC
+      CidrBlock: "10.10.0.0/25"
+  
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      VpcId: !Ref myVPC
+      CidrBlock: "10.10.0.128/25"
+      
+  PublicRouteTable:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CustomRoute
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref igwName
+  
+  CustomRoute:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      
+  PublicSubnetrouteTableAssocName:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref CustomRoute
+  
+  RohitNsg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "allowsshandhttp"
+      GroupDescription: "allosshandhttp"
+      VpcId:  !Ref myVPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: "0.0.0.0/0"
+      
+      SecurityGroupEgress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65000
+        CidrIp: 0.0.0.0/0
+  
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "ec2serverlambdafunction"
+      ImageId:  "ami-005f9685cb30f234b"
+      InstanceType: "t2.micro"
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        !Ref RohitNsg
+      
+      
+  
+  
+  
+

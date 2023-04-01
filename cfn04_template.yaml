@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: "this is my 4th template"
+
+Resources:
+  Rohitsg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Allow22"
+      GroupDescription: "Allow22"
+      VpcId:  "vpc-0238c4ebe32b9f3d7"
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: "0.0.0.0/0"
+  
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "ec2serverlambdafunction"
+      ImageId: "ami-005f9685cb30f234b"
+      InstanceType: "t2.micro"
+      SecurityGroupIds:
+        - !Ref Rohitsg

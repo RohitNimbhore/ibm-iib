@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This is my fourth template which will create 1 custom vpc , 1 igw, 1 public subnet, 1 private subnet, 1 Default pub route table
+  ,1 custom route table, 1 routetableassociation, NAT Gateway, EIP for Natgateway "
+
+Parameters:
+  vpcCIDR:
+    Description: "VPC cidr range"
+    Type: String
+    Default:  "10.10.0.0/24"
+  AMIID:
+    Description:  "refer this ami id for linux os kernel" 
+    Type: String
+    Default:  "ami-005f9685cb30f234b"
+  Instancestate:
+    Description: "1gb ram 1 cpu"
+    Type: String
+    Default:  "t2.micro"
+  
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.10.0.0/24"
+      EnableDnsSupport: true
+
+  igwName:
+    Type: AWS::EC2::InternetGateway
+    
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:  !Ref myVPC 
+      InternetGatewayId: !Ref igwName
+  
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      VpcId:  !Ref myVPC
+      CidrBlock:  "10.10.0.0/25"
+  
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: "us-east-1a"
+      VpcId:  !Ref myVPC
+      CidrBlock:  "10.10.0.128/25"  
+  
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref CustomRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId:  !Ref igwName
+
+  CustomRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  !Ref myVPC
+  
+  PublicrouteTableAssocName:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref CustomRouteTable
+  
+  secGroupName:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "RohitCFtestsg"
+      GroupDescription: "Allowsshtestlab"
+      VpcId:  !Ref myVPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 22  
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65000
+        CidrIp: 0.0.0.0/0
+  
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "ec2serverlambdafunction"
+      ImageId:  !Ref AMIID
+      InstanceType: !Ref Instancestate
+      SubnetId: !Ref PublicSubnet
+      Monitoring: true
+      SecurityGroupIds:
+        - !Ref secGroupName
+      
+    

@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:  "This is my first practice sample cloudformation template.Hope it goes good"
+
+
+Resources:  
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/24
+      EnableDnsSupport: true
+  
+ 
+        
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "ec2serverlambdafunction"
+      ImageId: "ami-005f9685cb30f234b"
+      InstanceType: "t2.micro"
+      
